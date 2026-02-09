@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Upload Photo - PhotoLens Studio{% endblock %}
+{% block content %}
+<div class="container my-5">
+    <h1 class="mb-4">Upload Photo</h1>
+    <div class="card">
+        <div class="card-body p-4">
+            <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+                <div class="mb-3">
+                    <label class="form-label">Title *</label>
+                    <input type="text" name="title" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Category *</label>
+                    <select name="category" class="form-select" required>
+                        <option value="wedding">Wedding</option>
+                        <option value="portrait">Portrait</option>
+                        <option value="nature">Nature</option>
+                        <option value="architecture">Architecture</option>
+                        <option value="commercial">Commercial</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" class="form-control" rows="4"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Photo File *</label>
+                    <input type="file" name="photo" accept="image/*" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Upload Photo</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

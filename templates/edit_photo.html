@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Edit Photo - PhotoLens Studio{% endblock %}
+{% block content %}
+<div class="container my-5">
+    <h1 class="mb-4"><i class="fas fa-edit"></i> Edit Photo</h1>
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body p-4">
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label class="form-label">Title *</label>
+                            <input type="text" name="title" class="form-control" value="{{ photo.title }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Category *</label>
+                            <select name="category" class="form-select" required>
+                                <option value="wedding" {% if photo.category=='wedding' %}selected{% endif %}>Wedding
+                                </option>
+                                <option value="portrait" {% if photo.category=='portrait' %}selected{% endif %}>Portrait
+                                </option>
+                                <option value="nature" {% if photo.category=='nature' %}selected{% endif %}>Nature
+                                </option>
+                                <option value="architecture" {% if photo.category=='architecture' %}selected{% endif %}>
+                                    Architecture</option>
+                                <option value="commercial" {% if photo.category=='commercial' %}selected{% endif %}>
+                                    Commercial</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <textarea name="description" class="form-control" rows="4">{{ photo.description }}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Update Photo
+                        </button>
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

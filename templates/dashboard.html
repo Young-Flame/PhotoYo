@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - PhotoLens Studio{% endblock %}
+{% block content %}
+<div class="container my-5">
+    <h1 class="mb-4">Dashboard</h1>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card p-4">
+                <h5>Overview</h5>
+                <p class="mb-1">Total Photos: {{ stats.total_photos if stats.total_photos is defined else stats.my_photos }}</p>
+                <p class="mb-1">Total Bookings: {{ stats.total_bookings if stats.total_bookings is defined else stats.my_bookings }}</p>
+                <p class="mb-1">Total Views: {{ stats.total_views }}</p>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <div class="card p-4">
+                <h5>Recent Photos</h5>
+                <div class="row g-3">
+                    {% for photo in recent_photos %}
+                    <div class="col-md-4">
+                        <img src="{{ url_for('static', filename='uploads/' + photo.filename) }}" class="img-fluid rounded">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

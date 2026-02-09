@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}About - PhotoLens Studio{% endblock %}
+{% block content %}
+<div class="container my-5">
+    <h1 class="mb-4">About Us</h1>
+    <p class="lead">PhotoLens Studio is a team of professional photographers dedicated to capturing your best moments.</p>
+    <div class="row g-4 mt-4">
+        <div class="col-md-4">
+            <div class="card p-4 stats-card text-center">
+                <h3>{{ stats.total_photos }}</h3>
+                <p>Photos</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-4 stats-card text-center">
+                <h3>{{ stats.total_clients }}</h3>
+                <p>Clients</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card p-4 stats-card text-center">
+                <h3>{{ stats.completed_projects }}</h3>
+                <p>Completed Projects</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
