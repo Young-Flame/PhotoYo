@@ -1,0 +1,115 @@
+/* Responsive styles for mobile devices */
+
+/* Tablet and smaller screens */
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 80px 0;
+  }
+
+  .stats-card {
+    padding: 20px;
+  }
+
+  .photo-card img {
+    height: 250px;
+  }
+
+  .flash-messages {
+    right: 10px;
+    max-width: 90%;
+  }
+
+  .navbar-brand {
+    font-size: 1.3rem;
+  }
+
+  footer .row > div {
+    margin-bottom: 30px;
+  }
+}
+
+/* Mobile phones */
+@media (max-width: 480px) {
+  .hero-section {
+    padding: 60px 0;
+    text-align: center;
+  }
+
+  .hero-section h1 {
+    font-size: 2rem;
+  }
+
+  .hero-section p {
+    font-size: 1rem;
+  }
+
+  .navbar-brand {
+    font-size: 1.2rem;
+  }
+
+  .stats-card {
+    padding: 15px;
+    margin-bottom: 20px;
+  }
+
+  .stats-card h2 {
+    font-size: 1.5rem;
+  }
+
+  .photo-card img {
+    height: 200px;
+  }
+
+  .photo-overlay {
+    padding: 15px;
+  }
+
+  .flash-messages {
+    right: 5px;
+    left: 5px;
+    max-width: none;
+    top: 70px;
+  }
+
+  footer .row > div {
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  footer h5 {
+    font-size: 1.1rem;
+  }
+
+  .card-body {
+    padding: 1rem;
+  }
+
+  .btn {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+  }
+}
+
+/* iPhone 12 specific (390px width) */
+@media (max-width: 390px) {
+  .container {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+
+  .hero-section h1 {
+    font-size: 1.8rem;
+  }
+
+  .hero-section p {
+    font-size: 0.95rem;
+  }
+
+  .stats-card h2 {
+    font-size: 1.3rem;
+  }
+
+  .photo-card img {
+    height: 180px;
+  }
+}
