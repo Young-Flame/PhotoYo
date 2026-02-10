@@ -1,0 +1,27 @@
+{
+  "name": "webtechassignment",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Young-Flame/PhotoYo.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Young-Flame/PhotoYo/issues"
+  },
+  "homepage": "https://github.com/Young-Flame/PhotoYo#readme",
+  "description": "",
+  "devDependencies": {
+    "tailwindcss": "^3.4.0"
+  },
+  "scripts": {
+    "build-css": "tailwindcss -i ./static/css/input.css -o ./static/css/output.css",
+    "watch-css": "tailwindcss -i ./static/css/input.css -o ./static/css/output.css --watch"
+  }
+}

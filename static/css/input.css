@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Photography Theme */
+@layer components {
+  .btn-primary {
+    @apply bg-amber-900 text-amber-50 px-6 py-3 rounded-lg hover:bg-amber-800 transition-all duration-300 shadow-md;
+  }
+  
+  .btn-secondary {
+    @apply bg-stone-700 text-white px-6 py-3 rounded-lg hover:bg-stone-600 transition-all duration-300;
+  }
+  
+  .card {
+    @apply bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-300;
+  }
+  
+  .input-field {
+    @apply w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500;
+  }
+}
