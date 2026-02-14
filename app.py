@@ -137,6 +137,12 @@ def portfolio():
                          selected_category=category, search_query=search)
 
 
+@app.route('/gallery')
+def gallery():
+    photos = Photo.query.order_by(Photo.created_at.desc()).all()
+    return render_template('gallery.html', photos=photos)
+
+
 @app.route('/photo/<int:photo_id>')
 def photo_detail(photo_id):
     photo = Photo.query.get_or_404(photo_id)
@@ -216,7 +222,7 @@ def register():
         flash('Registration successful! Please login.', 'success')
         return redirect(url_for('login'))
     
-    return render_template('register.html')
+    return render_template('auth/register.html')
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -236,7 +242,7 @@ def login():
         else:
             flash('Invalid email or password.', 'danger')
     
-    return render_template('login.html')
+    return render_template('auth/login.html')
 
 
 @app.route('/logout')
@@ -272,7 +278,7 @@ def dashboard():
         recent_photos = Photo.query.filter_by(user_id=user.id).order_by(Photo.created_at.desc()).limit(5).all()
         recent_bookings = Booking.query.filter_by(user_id=user.id).order_by(Booking.created_at.desc()).limit(5).all()
     
-    return render_template('dashboard.html', user=user, stats=stats, 
+    return render_template('admin/dashboard.html', user=user, stats=stats, 
                          recent_photos=recent_photos, recent_bookings=recent_bookings)
 
 
@@ -297,7 +303,7 @@ def profile():
         flash('Profile updated successfully!', 'success')
         return redirect(url_for('profile'))
     
-    return render_template('profile.html', user=user)
+    return render_template('auth/profile.html', user=user)
 
 
 # ==================== PHOTO MANAGEMENT (CRUD) ====================

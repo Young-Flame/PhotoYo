@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}
+PhotoLens Studio - Gallery
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/gallery.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div class="gallery-grid">
+    {% for photo in photos %}
+    <div class="gallery-item">
+        <img src="{{ url_for('static', filename='uploads/' + photo.filename) }}" alt="{{ photo.title }}" />
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

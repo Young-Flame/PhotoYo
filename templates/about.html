@@ -1,28 +1,42 @@
 {% extends "base.html" %}
-{% block title %}About - PhotoLens Studio{% endblock %}
+
+{% block title %}
+PhotoLens Studio - About
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/about.css') }}">
+{% endblock %}
+
 {% block content %}
-<div class="container my-5">
-    <h1 class="mb-4">About Us</h1>
-    <p class="lead">PhotoLens Studio is a team of professional photographers dedicated to capturing your best moments.</p>
-    <div class="row g-4 mt-4">
-        <div class="col-md-4">
-            <div class="card p-4 stats-card text-center">
-                <h3>{{ stats.total_photos }}</h3>
-                <p>Photos</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card p-4 stats-card text-center">
-                <h3>{{ stats.total_clients }}</h3>
-                <p>Clients</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card p-4 stats-card text-center">
-                <h3>{{ stats.completed_projects }}</h3>
-                <p>Completed Projects</p>
-            </div>
-        </div>
+
+<article>
+    <!-- Image placeholder - add your about.jpg to static/images/ -->
+    <!-- <img class="about" src="{{ url_for('static', filename='images/about.jpg') }}" alt="about-photo" /> -->
+    <div class="about">
+        <h1 class="h1">HEY THERE! IT'S ME</h1>
+        <p>
+            Welcome to SNAKE SHOT, where the art of storytelling meets the
+            timeless allure of film photography. I'm Judita Cicenaite, the
+            creative force behind the lens. With a passion for capturing raw
+            emotions and unfiltered moments, I specialize in crafting edgy
+            narratives that transcend the ordinary.
+        </p>
+        <p>
+            My journey through the world of black and white and color photography
+            has led me to the heart of personal narratives, brand identities,
+            pulsating concerts, and the enigmatic realm of music. Each image I
+            create is a piece of visual poetry, a window into the untold stories
+            that dance within the frame.
+        </p>
+        <p>
+            Drawing inspiration from the interplay of light and shadow, I curate a
+            visual journey that ignites curiosity and evokes emotions. SNAKE SHOT
+            is more than a brand, it's an invitation to explore the uncharted
+            territories of the human experience. Join me as we peel back the
+            layers of existence, one captivating shot at a time.
+        </p>
+        <h1 class="h1">INTERESTED IN PHOTOSHOOT YET?</h1>
     </div>
-</div>
+</article>
 {% endblock %}
