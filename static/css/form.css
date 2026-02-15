@@ -1,0 +1,263 @@
+/* Form Container */
+form {
+    max-width: 600px;
+    margin: 4rem auto;
+    padding: 3rem;
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 100%);
+    border: 3px solid var(--primary-color);
+    position: relative;
+}
+
+/* Grid overlay effect */
+form::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        repeating-linear-gradient(
+            90deg,
+            transparent,
+            transparent 2px,
+            rgba(255, 0, 255, 0.03) 2px,
+            rgba(255, 0, 255, 0.03) 4px
+        ),
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 2px,
+            rgba(0, 255, 255, 0.03) 2px,
+            rgba(0, 255, 255, 0.03) 4px
+        );
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Form Field Wrapper */
+.contact-form {
+    position: relative;
+    margin-bottom: 2.5rem;
+    z-index: 2;
+}
+
+/* Input and Textarea Base Styles */
+.contact-form input,
+.contact-form textarea {
+    width: 100%;
+    padding: 1rem;
+    background: rgba(26, 26, 26, 0.8);
+    border: 2px solid var(--primary-color);
+    color: var(--light-color);
+    font-size: 1rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    transition: all 0.3s ease;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+    background: rgba(26, 26, 26, 1);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+}
+
+/* Alternate border colors */
+.contact-form:nth-child(even) input,
+.contact-form:nth-child(even) textarea {
+    border-color: var(--secondary-color);
+}
+
+.contact-form:nth-child(even) input:focus,
+.contact-form:nth-child(even) textarea:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 15px rgba(255, 0, 255, 0.3);
+}
+
+/* Textarea specific */
+.contact-form textarea {
+    resize: vertical;
+    min-height: 150px;
+}
+
+/* Floating Label */
+.contact-form label {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    color: var(--text-color);
+    font-size: 1rem;
+    pointer-events: none;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+/* Label on focus or when input has value */
+.contact-form input:focus + label,
+.contact-form input:not(:placeholder-shown) + label,
+.contact-form textarea:focus + label,
+.contact-form textarea:not(:placeholder-shown) + label {
+    top: -1.5rem;
+    left: 0;
+    font-size: 0.85rem;
+    color: var(--primary-color);
+    background: var(--dark-color);
+    padding: 0 0.5rem;
+}
+
+.contact-form:nth-child(even) input:focus + label,
+.contact-form:nth-child(even) input:not(:placeholder-shown) + label,
+.contact-form:nth-child(even) textarea:focus + label,
+.contact-form:nth-child(even) textarea:not(:placeholder-shown) + label {
+    color: var(--secondary-color);
+}
+
+/* Submit Button */
+.submit-button {
+    width: 100%;
+    padding: 1.2rem;
+    background: transparent;
+    border: 3px solid var(--primary-color);
+    color: var(--primary-color);
+    font-size: 1.2rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 2;
+}
+
+.submit-button:hover {
+    background: var(--primary-color);
+    color: #000;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 20px rgba(255, 0, 255, 0.4);
+}
+
+.submit-button:active {
+    transform: translateY(0);
+}
+
+/* ==================== FORM PAGE WRAPPER ==================== */
+
+.contact-page-wrapper {
+    min-height: calc(100vh - 400px);
+    padding: 4rem 2rem;
+    background: var(--dark-color);
+}
+
+.contact-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.contact-title {
+    font-size: 3rem;
+    font-weight: 900;
+    color: var(--primary-color);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    margin-bottom: 1rem;
+}
+
+.contact-subtitle {
+    font-size: 1.2rem;
+    color: var(--text-color);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* ==================== RESPONSIVE DESIGN ==================== */
+
+@media screen and (max-width: 768px) {
+    form {
+        margin: 2rem 1rem;
+        padding: 2rem 1.5rem;
+    }
+
+    .contact-title {
+        font-size: 2rem;
+    }
+
+    .contact-subtitle {
+        font-size: 1rem;
+    }
+
+    .submit-button {
+        font-size: 1rem;
+        padding: 1rem;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    form {
+        padding: 1.5rem;
+    }
+
+    .contact-form {
+        margin-bottom: 2rem;
+    }
+
+    .contact-form input,
+    .contact-form textarea {
+        font-size: 0.95rem;
+        padding: 0.8rem;
+    }
+
+    .contact-title {
+        font-size: 1.5rem;
+        letter-spacing: 1px;
+    }
+}
+
+
+.form-cyberpunk {
+    box-shadow: 
+        0 0 20px rgba(255, 0, 255, 0.3),
+        inset 0 0 20px rgba(0, 255, 255, 0.1);
+}
+
+.form-cyberpunk::after {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color), var(--primary-color));
+    z-index: -1;
+    opacity: 0.5;
+    filter: blur(10px);
+}
+
+/* Input validation styles */
+.contact-form input:invalid:not(:placeholder-shown),
+.contact-form textarea:invalid:not(:placeholder-shown) {
+    border-color: #ff0055;
+}
+
+.contact-form input:valid:not(:placeholder-shown),
+.contact-form textarea:valid:not(:placeholder-shown) {
+    border-color: var(--secondary-color);
+}
+.form-success {
+    background: rgba(0, 255, 255, 0.2);
+    border: 2px solid var(--secondary-color);
+    color: var(--secondary-color);
+    padding: 1rem;
+    text-align: center;
+    font-weight: 700;
+    margin-bottom: 2rem;
+}
+.form-error {
+    background: rgba(255, 0, 85, 0.2);
+    border: 2px solid #ff0055;
+    color: #ff0055;
+    padding: 1rem;
+    text-align: center;
+    font-weight: 700;
+    margin-bottom: 2rem;
+}

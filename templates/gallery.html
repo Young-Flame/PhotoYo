@@ -1,21 +1,28 @@
-{% extends "base.html" %}
-
-{% block title %}
-PhotoLens Studio - Gallery
-{% endblock %}
+{% extends "layout.html" %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/gallery.css') }}">
 {% endblock %}
 
+{% block title %}
+PhotoYo - Gallery
+{% endblock %}
+
+
 {% block content %}
 
 <div class="gallery-grid">
-    {% for photo in photos %}
+
+    {% for image in images %}
     <div class="gallery-item">
-        <img src="{{ url_for('static', filename='uploads/' + photo.filename) }}" alt="{{ photo.title }}" />
+        <img src="static/images/gallery/{{ image }}" />
     </div>
     {% endfor %}
+</div>
+
+<div class="full-size-photo">
+    <span>&times;</span>
+    <img src="static/photos/gallery/20220429_0005.jpg" />
 </div>
 
 {% endblock %}

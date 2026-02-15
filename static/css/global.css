@@ -1,0 +1,161 @@
+/* * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'libre_caslon_displayregular';
+    --font-color: #222;
+    --header-height: 100px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    height: var(--header-height);
+    padding: 5px 10px;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.logo img {
+    max-width: 60px;
+    margin: 10px;
+}
+
+h1 {
+    font-size: 20px;
+
+}
+
+.menu {
+    display: none;
+}
+
+.burger-menu {
+    display: block;
+    width: 35px;
+    margin-right: 15px;
+    background: none;
+    border: none;
+}
+
+.burger-menu .menu, .burger-menu:after, .burger-menu:before {
+    content: "";
+    display: block;
+    height: 3px;
+    background-color: black;
+    margin: 8px 0px;
+    transition: 0.4s;
+}
+
+.burger-menu.active:before {
+    transform: rotate(45deg) translate(7px, 8px);
+}
+
+.burger-menu.active .menu {
+    opacity: 0;
+}
+
+.burger-menu.active:after {
+    transform: rotate(-45deg) translate(7px, -9px);
+}
+
+.mobile-menu {
+    position: absolute;
+    visibility: hidden;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    opacity: 0;
+    width: 100%;
+    height: calc(100% - var(--header-height));
+    transition: 0.4s;
+
+}
+
+.mobile-menu a {
+    padding-bottom: 50px;
+    font-size: 25px;
+}
+
+.mobile-menu.active {
+    display: flex;
+    z-index: 1;
+    visibility: visible;
+    opacity: 0.9;
+}
+
+nav a:link,
+nav a:visited {
+    text-decoration: none;
+    color: var(--font-color);
+}
+
+nav a:hover,
+nav a.active {
+    text-decoration: underline;
+    color: var(--font-color);
+}
+
+.cover-photo-container {
+    width: 100%;
+    height: calc(100vh - var(--header-height));
+    overflow: hidden;
+}
+
+.cover-photo {
+    background-image: url('photos/index.jpg');
+    background-attachment: fixed;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    width: 100%;
+    height: calc(100vh - var(--header-height));
+    animation: move-image 15s linear infinite;
+    animation-direction: alternate;
+}
+
+@keyframes move-image {
+    0% {
+        transform: scale(100%);
+    }
+    100% {
+        transform: scale(110%);
+    }
+}
+
+@media (min-width: 690px) {
+    .burger-menu {
+        display: none;
+    }
+
+    .mobile-menu {
+        display: none;
+    }
+
+    .logo {
+        gap: 10px;
+    }
+
+    h1 {
+        font-size: 25px;
+        font-weight: 400;
+    }
+
+    .menu {
+        display: flex;
+        align-items: center;
+        font-size: 20px;
+    }
+
+    .menu * {
+        margin-right: 1em;
+    }
+} */

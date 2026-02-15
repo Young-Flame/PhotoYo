@@ -1,8 +1,18 @@
-{% extends "base.html" %}
-{% block title %}Dashboard - PhotoLens Studio{% endblock %}
+{% extends "layout.html" %}
+
+{% block title %}Dashboard - PhotoYo{% endblock %}
+
 {% block content %}
 <div class="container my-5">
     <h1 class="mb-4">Dashboard</h1>
+    
+    <!-- Upload Button -->
+    <div class="mb-4">
+        <a href="{{ url_for('upload_photo') }}" class="btn btn-primary">
+            <i class="fas fa-upload"></i> Upload Photo
+        </a>
+    </div>
+    
     <div class="row g-4">
         <div class="col-md-4">
             <div class="card p-4">

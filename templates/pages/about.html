@@ -1,22 +1,23 @@
-{% extends "base.html" %}
+{% extends "layout.html" %}
 
 {% block title %}
-PhotoLens Studio - About
+PhotoYo - About
 {% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/about.css') }}">
 {% endblock %}
 
+
 {% block content %}
 
 <article>
     <!-- Image placeholder - add your about.jpg to static/images/ -->
-    <!-- <img class="about" src="{{ url_for('static', filename='images/about.jpg') }}" alt="about-photo" /> -->
+    <img class="about" src="{{ url_for('static', filename='images/logo/bibek3.png') }}" alt="about-photo" />
     <div class="about">
         <h1 class="h1">HEY THERE! IT'S ME</h1>
         <p>
-            Welcome to SNAKE SHOT, where the art of storytelling meets the
+            Welcome to PhotoYo, where the art of storytelling meets the
             timeless allure of film photography. I'm Judita Cicenaite, the
             creative force behind the lens. With a passion for capturing raw
             emotions and unfiltered moments, I specialize in crafting edgy

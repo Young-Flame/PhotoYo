@@ -1,0 +1,74 @@
+.admin {
+    display: flex;
+    width: 90%;
+    margin: auto;
+    gap: 10px;
+}
+
+table {
+    width: 30%;
+}
+
+tbody {
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+}
+
+tr {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid black;
+    border-radius: 15px;
+    font-size: 17px;
+    padding: 10px;
+    gap: 5px;
+}
+
+.upload {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 70%;
+    padding-top: 20px;
+    gap: 20px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+input {
+    font-size: 14px;
+    width: 100%;
+    padding: 7px;
+    outline: 0;
+    border: 1px solid black;
+    border-radius: 15px;
+    background-color: transparent;
+
+}
+
+button {
+    padding: 9px 0;
+    border: 1px solid black;
+    border-radius: 15px;
+    background-color: #d8d8d8;
+    opacity: 0.8;
+    width: 40%;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+@media (min-width: 690px) {
+    .admin {
+        gap: 40px;
+    }
+
+    button {
+        width: 35%
+    }
+}

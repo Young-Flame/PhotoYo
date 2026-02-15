@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Photoyo - Photography Portfolio{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/header.css') }}">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <!-- Logo -->
+            <a href="/" class="logo">
+                <i class="fas fa-camera"></i>
+                <span>Photoyo</span>
+            </a>
+
+            <!-- Hamburger Menu for Mobile -->
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+
+            <!-- Navigation Links -->
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="/" class="nav-link">Home</a></li>
+                <li><a href="/about" class="nav-link">About</a></li>
+                <li><a href="/gallery" class="nav-link">Gallery</a></li>
+                <li><a href="/services" class="nav-link">Services</a></li>
+                <li><a href="/contact" class="nav-link">Contact</a></li>
+                
+                <!-- Auth Buttons -->
+                <li class="nav-auth">
+                    {% if session.user_id %}
+                    <a href="/profile" class="btn-login">{{ session.user_name }}</a>
+                    <a href="/logout" class="btn-signup">Logout</a>
+                    {% else %}
+                    <a href="/login" class="btn-login">Login</a>
+                    <a href="/register" class="btn-signup">Sign Up</a>
+                    {% endif %}
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    <div class="flash-messages max-w-7xl mx-auto px-4 mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="p-4 mb-4 text-sm rounded-lg {% if category == 'error' or category == 'danger' %}bg-red-100 text-red-800 border border-red-200{% elif category == 'success' %}bg-green-100 text-green-800 border border-green-200{% elif category == 'warning' %}bg-yellow-100 text-yellow-800 border border-yellow-200{% else %}bg-blue-100 text-blue-800 border border-blue-200{% endif %} relative" role="alert">
+            {{ message }}
+            <button type="button" class="absolute top-2 right-2 text-gray-500 hover:text-gray-700" onclick="this.parentElement.remove()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer style="
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a0a1a 100%);
+    color: #e0e0e0;
+    padding: 3rem 0 1rem 0;
+    margin-top: 3rem;
+    border-top: 4px solid #ff00ff;
+">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 0 2rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 3rem;">
+
+            <!-- Brand Section -->
+            <div>
+                <h5 style="
+                    font-size: 1.5rem;
+                    font-weight: 900;
+                    margin-bottom: 1rem;
+                    color: #ff00ff;
+                    text-transform: uppercase;
+                    letter-spacing: 2px;
+                ">
+                    <i class="fas fa-camera" style="margin-right: 0.5rem; color: #00ffff;"></i>
+                    Photoyo
+                </h5>
+                <p style="
+                    color: #b0b0b0;
+                    line-height: 1.6;
+                    border-left: 3px solid #ff00ff;
+                    padding-left: 1rem;
+                ">
+                    Rebel photography for the bold. Breaking rules, capturing chaos.
+                </p>
+            </div>
+
+            <!-- Quick Links Section -->
+            <div>
+                <h5 style="
+                    font-size: 1.2rem;
+                    font-weight: 800;
+                    margin-bottom: 1rem;
+                    color: #00ffff;
+                    text-transform: uppercase;
+                ">
+                    Quick Links
+                </h5>
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    <li style="margin-bottom: 0.7rem;">
+                        <a href="/" style="color: #b0b0b0; text-decoration: none; font-weight: 600;"
+                            onmouseover="this.style.color='#ff00ff';" onmouseout="this.style.color='#b0b0b0';">
+                            → Home
+                        </a>
+                    </li>
+                    <li style="margin-bottom: 0.7rem;">
+                        <a href="/gallery" style="color: #b0b0b0; text-decoration: none; font-weight: 600;"
+                            onmouseover="this.style.color='#ff00ff';" onmouseout="this.style.color='#b0b0b0';">
+                            → Gallery
+                        </a>
+                    </li>
+                    <li style="margin-bottom: 0.7rem;">
+                        <a href="/services" style="color: #b0b0b0; text-decoration: none; font-weight: 600;"
+                            onmouseover="this.style.color='#ff00ff';" onmouseout="this.style.color='#b0b0b0';">
+                            → Services
+                        </a>
+                    </li>
+                    <li style="margin-bottom: 0.7rem;">
+                        <a href="/about" style="color: #b0b0b0; text-decoration: none; font-weight: 600;"
+                            onmouseover="this.style.color='#ff00ff';" onmouseout="this.style.color='#b0b0b0';">
+                            → About
+                        </a>
+                    </li>
+                    <li style="margin-bottom: 0.7rem;">
+                        <a href="/contact" style="color: #b0b0b0; text-decoration: none; font-weight: 600;"
+                            onmouseover="this.style.color='#ff00ff';" onmouseout="this.style.color='#b0b0b0';">
+                            → Contact
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Contact Info Section -->
+            <div>
+                <h5 style="
+                    font-size: 1.2rem;
+                    font-weight: 800;
+                    margin-bottom: 1rem;
+                    color: #00ffff;
+                    text-transform: uppercase;
+                ">
+                    Contact Info
+                </h5>
+
+                <p style="color: #b0b0b0; margin-bottom: 1rem;">
+                    <i class="fas fa-map-marker-alt" style="margin-right: 0.7rem; color: #ff00ff;"></i>
+                    123 Photography Lane, Creative District
+                </p>
+
+                <p style="color: #b0b0b0; margin-bottom: 1rem;">
+                    <i class="fas fa-phone" style="margin-right: 0.7rem; color: #00ffff;"></i>
+                    +1 (555) 123-4567
+                </p>
+
+                <p style="color: #b0b0b0; margin-bottom: 1.5rem;">
+                    <i class="fas fa-envelope" style="margin-right: 0.7rem; color: #ff00ff;"></i>
+                    info@photoyostudio.com
+                </p>
+
+                <!-- Social Icons -->
+                <div style="display: flex; gap: 1rem;">
+                    <a href="#" style="
+                        width: 40px;
+                        height: 40px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        background: #1a1a1a;
+                        border: 2px solid #ff00ff;
+                        color: #ff00ff;
+                        text-decoration: none;
+                    " onmouseover="this.style.background='#ff00ff'; this.style.color='#000';"
+                        onmouseout="this.style.background='#1a1a1a'; this.style.color='#ff00ff';">
+                        <i class="fab fa-facebook"></i>
+                    </a>
+
+                    <a href="#" style="
+                        width: 40px;
+                        height: 40px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        background: #1a1a1a;
+                        border: 2px solid #00ffff;
+                        color: #00ffff;
+                        text-decoration: none;
+                    " onmouseover="this.style.background='#00ffff'; this.style.color='#000';"
+                        onmouseout="this.style.background='#1a1a1a'; this.style.color='#00ffff';">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+
+                    <a href="#" style="
+                        width: 40px;
+                        height: 40px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        background: #1a1a1a;
+                        border: 2px solid #ff00ff;
+                        color: #ff00ff;
+                        text-decoration: none;
+                    " onmouseover="this.style.background='#ff00ff'; this.style.color='#000';"
+                        onmouseout="this.style.background='#1a1a1a'; this.style.color='#ff00ff';">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+
+                    <a href="#" style="
+                        width: 40px;
+                        height: 40px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        background: #1a1a1a;
+                        border: 2px solid #00ffff;
+                        color: #00ffff;
+                        text-decoration: none;
+                    " onmouseover="this.style.background='#00ffff'; this.style.color='#000';"
+                        onmouseout="this.style.background='#1a1a1a'; this.style.color='#00ffff';">
+                        <i class="fab fa-pinterest"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Divider -->
+        <hr style="
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #ff00ff, #00ffff, #ff00ff, transparent);
+            margin: 2rem 0 1.5rem 0;
+        ">
+
+        <!-- Copyright -->
+        <div style="text-align: center;">
+            <p style="color: #b0b0b0; margin: 0; font-size: 0.9rem;">
+                © 2025 <span style="color: #ff00ff; font-weight: bold;">Photoyo</span> · All rights reserved
+            </p>
+        </div>
+    </div>
+</footer>
+
+    <!-- JavaScript for Mobile Menu -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script>
+        // Auto-hide flash messages after 5 seconds
+        setTimeout(function () {
+            const alerts = document.querySelectorAll('.flash-messages .p-4.mb-4');
+            alerts.forEach(alert => {
+                alert.style.transition = 'opacity 0.5s';
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 500);
+            });
+        }, 5000);
+
+        // Mobile menu toggle
+        const hamburger = document.getElementById('hamburger');
+        const navMenu = document.getElementById('navMenu');
+
+        if (hamburger) {
+            hamburger.addEventListener('click', () => {
+                navMenu.classList.toggle('active');
+            });
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

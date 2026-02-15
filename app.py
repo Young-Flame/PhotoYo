@@ -1,224 +1,187 @@
+"""
+Photography Portfolio Web Application
+Combines contact management, photo gallery, and booking system
+Uses in-memory storage for simplicity (no database required)
+"""
+
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
-from flask_sqlalchemy import SQLAlchemy
+from flask_session import Session # type: ignore
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from datetime import datetime
 from functools import wraps
 import os
+import glob
 
+# ==================== APP CONFIGURATION ====================
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your-secret-key-here-change-in-production'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///photography.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
-
-db = SQLAlchemy(app)
-
-# Ensure upload folder exists
+app.config.update(
+    SECRET_KEY='your-secret-key-change-in-production',
+    SESSION_PERMANENT=False,
+    SESSION_TYPE='filesystem',
+    UPLOAD_FOLDER='static/uploads',
+    MAX_CONTENT_LENGTH=16 * 1024 * 1024  # 16MB max file size
+)
+Session(app)
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
-# ==================== DATABASE MODELS ====================
+# ==================== DATA STORAGE ====================
+# In-memory data structures (resets on app restart)
+users = []      # User accounts with auth info
+photos = []     # Photo gallery items
+contacts = []   # Contact form submissions
+bookings = []   # Service booking requests
+comments = []   # Photo comments
 
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-    phone = db.Column(db.String(20))
-    password_hash = db.Column(db.String(200), nullable=False)
-    role = db.Column(db.String(20), default='user')  # 'user' or 'admin'
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Relationships
-    photos = db.relationship('Photo', backref='photographer', lazy=True, cascade='all, delete-orphan')
-    bookings = db.relationship('Booking', backref='client', lazy=True, cascade='all, delete-orphan')
-    
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-    
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
-
-
-class Photo(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
-    description = db.Column(db.Text)
-    filename = db.Column(db.String(200), nullable=False)
-    category = db.Column(db.String(50), nullable=False)
-    views = db.Column(db.Integer, default=0)
-    likes = db.Column(db.Integer, default=0)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    # Relationship to comments
-    comments = db.relationship('Comment', backref='photo', lazy=True, cascade='all, delete-orphan')
-
-
-class Booking(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    client_name = db.Column(db.String(100), nullable=False)
-    client_email = db.Column(db.String(120), nullable=False)
-    phone = db.Column(db.String(20))
-    service_type = db.Column(db.String(50), nullable=False)
-    booking_date = db.Column(db.DateTime, nullable=False)
-    message = db.Column(db.Text)
-    status = db.Column(db.String(20), default='pending')  # pending, confirmed, cancelled, completed
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-
-class Comment(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.Text, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    photo_id = db.Column(db.Integer, db.ForeignKey('photo.id'), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    user = db.relationship('User', backref='comments')
-
+# Auto-increment ID counters
+next_id = {'user': 1, 'photo': 1, 'contact': 1, 'booking': 1, 'comment': 1}
 
 # ==================== HELPER FUNCTIONS ====================
 
 def allowed_file(filename):
+    """Check if file extension is allowed"""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-
 def login_required(f):
+    """Decorator: Require user login"""
     @wraps(f)
-    def decorated_function(*args, **kwargs):
+    def decorated(*args, **kwargs):
         if 'user_id' not in session:
             flash('Please login to access this page.', 'danger')
             return redirect(url_for('login'))
         return f(*args, **kwargs)
-    return decorated_function
-
+    return decorated
 
 def admin_required(f):
+    """Decorator: Require admin role"""
     @wraps(f)
-    def decorated_function(*args, **kwargs):
+    def decorated(*args, **kwargs):
         if 'user_id' not in session:
-            flash('Please login to access this page.', 'danger')
             return redirect(url_for('login'))
-        user = User.query.get(session['user_id'])
-        if user.role != 'admin':
-            flash('You do not have permission to access this page.', 'danger')
+        user = next((u for u in users if u['id'] == session['user_id']), None)
+        if not user or user['role'] != 'admin':
+            flash('Admin access required.', 'danger')
             return redirect(url_for('index'))
         return f(*args, **kwargs)
-    return decorated_function
+    return decorated
 
+def init_data():
+    """Initialize default admin user and sample photos"""
+    # Create default admin account
+    if not any(u['email'] == 'admin@photo.com' for u in users):
+        users.append({
+            'id': next_id['user'],
+            'name': 'Admin User',
+            'email': 'admin@photo.com',
+            'phone': '+1234567890',
+            'password_hash': generate_password_hash('admin123'),
+            'role': 'admin',
+            'created_at': datetime.utcnow()
+        })
+        next_id['user'] += 1
+        print('✓ Admin created: admin@photo.com / admin123')
 
-# ==================== ROUTES ====================
+# ==================== PUBLIC ROUTES ====================
 
 @app.route('/')
 def index():
-    featured_photos = Photo.query.order_by(Photo.views.desc()).limit(6).all()
-    return render_template('index.html', photos=featured_photos)
-
-
-@app.route('/portfolio')
-def portfolio():
-    category = request.args.get('category', 'all')
-    search = request.args.get('search', '')
-    
-    query = Photo.query
-    
-    if category != 'all':
-        query = query.filter_by(category=category)
-    
-    if search:
-        query = query.filter(Photo.title.contains(search) | Photo.description.contains(search))
-    
-    photos = query.order_by(Photo.created_at.desc()).all()
-    categories = db.session.query(Photo.category).distinct().all()
-    
-    return render_template('portfolio.html', photos=photos, categories=categories, 
-                         selected_category=category, search_query=search)
-
+    """Home page with featured photos"""
+    featured = sorted(photos, key=lambda x: x.get('views', 0), reverse=True)[:6]
+    return render_template('index.html', photos=featured)
 
 @app.route('/gallery')
 def gallery():
-    photos = Photo.query.order_by(Photo.created_at.desc()).all()
-    return render_template('gallery.html', photos=photos)
+    """Photo gallery with all uploaded images"""
+    # Get images from upload folder
+    images = []
+    for ext in ALLOWED_EXTENSIONS:
+        images.extend([os.path.basename(f) for f in glob.glob(f"{app.config['UPLOAD_FOLDER']}/*.{ext}")])
+    return render_template('gallery.html', images=images, photos=photos)
 
-
-@app.route('/photo/<int:photo_id>')
-def photo_detail(photo_id):
-    photo = Photo.query.get_or_404(photo_id)
-    photo.views += 1
-    db.session.commit()
-    
-    comments = Comment.query.filter_by(photo_id=photo_id).order_by(Comment.created_at.desc()).all()
-    return render_template('photo_detail.html', photo=photo, comments=comments)
+@app.route('/about')
+def about():
+    """About page with statistics"""
+    stats = {
+        'total_photos': len(photos),
+        'total_clients': len([u for u in users if u['role'] == 'user']),
+        'total_bookings': len(bookings)
+    }
+    return render_template('pages/about.html', stats=stats)
 
 
 @app.route('/services')
 def services():
+    """Services offered page"""
     return render_template('services.html')
-
-
-@app.route('/about')
-def about():
-    stats = {
-        'total_photos': Photo.query.count(),
-        'total_clients': User.query.filter_by(role='user').count(),
-        'total_bookings': Booking.query.count(),
-        'completed_projects': Booking.query.filter_by(status='completed').count()
-    }
-    return render_template('about.html', stats=stats)
-
 
 @app.route('/contact', methods=['GET', 'POST'])
 def contact():
+    """Contact form for inquiries"""
     if request.method == 'POST':
-        name = request.form.get('name')
-        email = request.form.get('email')
-        phone = request.form.get('phone')
-        message = request.form.get('message')
-        
-        # Here you would typically send an email
-        flash('Thank you for contacting us! We will get back to you soon.', 'success')
+        # Save contact message
+        contacts.append({
+            'id': next_id['contact'],
+            'name': request.form.get('name'),
+            'phone': request.form.get('phone'),
+            'email': request.form.get('email'),
+            'message': request.form.get('message'),
+            'created_at': datetime.utcnow()
+        })
+        next_id['contact'] += 1
+        flash('Thank you! We will get back to you soon.', 'success')
         return redirect(url_for('contact'))
+    return render_template('pages/contact.html')
+
+
+@app.route('/photo/<int:photo_id>')
+def photo_detail(photo_id):
+    """Individual photo detail page"""
+    photo = next((p for p in photos if p['id'] == photo_id), None)
+    if not photo:
+        flash('Photo not found.', 'danger')
+        return redirect(url_for('gallery'))
     
-    return render_template('contact.html')
+    photo['views'] = photo.get('views', 0) + 1  # Increment view count
+    photo_comments = [c for c in comments if c['photo_id'] == photo_id]
+    return render_template('photos/photo_detail.html', photo=photo, comments=photo_comments)
 
 
-# ==================== AUTHENTICATION ROUTES ====================
+# ==================== AUTH ROUTES ====================
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    """User registration"""
     if request.method == 'POST':
         name = request.form.get('name')
         email = request.form.get('email')
-        phone = request.form.get('phone')
         password = request.form.get('password')
-        confirm_password = request.form.get('confirm_password')
         
         # Validation
-        if not name or not email or not password:
-            flash('All fields are required.', 'danger')
+        if not all([name, email, password]):
+            flash('All fields required.', 'danger')
             return redirect(url_for('register'))
         
-        if password != confirm_password:
+        if request.form.get('password') != request.form.get('confirm_password'):
             flash('Passwords do not match.', 'danger')
             return redirect(url_for('register'))
         
-        if len(password) < 6:
-            flash('Password must be at least 6 characters.', 'danger')
-            return redirect(url_for('register'))
-        
-        if User.query.filter_by(email=email).first():
+        if any(u['email'] == email for u in users):
             flash('Email already registered.', 'danger')
             return redirect(url_for('register'))
         
         # Create new user
-        user = User(name=name, email=email, phone=phone)
-        user.set_password(password)
-        
-        db.session.add(user)
-        db.session.commit()
-        
+        users.append({
+            'id': next_id['user'],
+            'name': name,
+            'email': email,
+            'phone': request.form.get('phone', ''),
+            'password_hash': generate_password_hash(password),
+            'role': 'user',
+            'created_at': datetime.utcnow()
+        })
+        next_id['user'] += 1
         flash('Registration successful! Please login.', 'success')
         return redirect(url_for('login'))
     
@@ -227,346 +190,297 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    """User/Admin login"""
+    session.clear()
+    
     if request.method == 'POST':
-        email = request.form.get('email')
+        email = request.form.get('email') or request.form.get('username')
         password = request.form.get('password')
         
-        user = User.query.filter_by(email=email).first()
+        user = next((u for u in users if u['email'] == email), None)
         
-        if user and user.check_password(password):
-            session['user_id'] = user.id
-            session['user_name'] = user.name
-            session['user_role'] = user.role
-            flash(f'Welcome back, {user.name}!', 'success')
+        if user and check_password_hash(user['password_hash'], password):
+            # Set session variables
+            session['user_id'] = user['id']
+            session['user_name'] = user['name']
+            session['user_role'] = user['role']
+            flash(f'Welcome back, {user["name"]}!', 'success')
             return redirect(url_for('dashboard'))
         else:
-            flash('Invalid email or password.', 'danger')
+            flash('Invalid credentials.', 'danger')
     
     return render_template('auth/login.html')
 
 
 @app.route('/logout')
 def logout():
+    """Logout current user"""
     session.clear()
-    flash('You have been logged out.', 'info')
+    flash('Logged out successfully.', 'info')
     return redirect(url_for('index'))
-
 
 # ==================== USER DASHBOARD ====================
 
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    user = User.query.get(session['user_id'])
+    """User/Admin dashboard with stats"""
+    user = next((u for u in users if u['id'] == session['user_id']), None)
     
-    if user.role == 'admin':
+    if user['role'] == 'admin':
+        # Admin dashboard stats
         stats = {
-            'total_users': User.query.count(),
-            'total_photos': Photo.query.count(),
-            'pending_bookings': Booking.query.filter_by(status='pending').count(),
-            'total_views': db.session.query(db.func.sum(Photo.views)).scalar() or 0
+            'total_users': len(users),
+            'total_photos': len(photos),
+            'pending_bookings': len([b for b in bookings if b.get('status') == 'pending']),
+            'total_contacts': len(contacts)
         }
-        recent_photos = Photo.query.order_by(Photo.created_at.desc()).limit(5).all()
-        recent_bookings = Booking.query.order_by(Booking.created_at.desc()).limit(5).all()
+        recent_photos = sorted(photos, key=lambda x: x['created_at'], reverse=True)[:5]
+        recent_bookings = sorted(bookings, key=lambda x: x['created_at'], reverse=True)[:5]
     else:
+        # Regular user stats
+        user_photos = [p for p in photos if p['user_id'] == user['id']]
         stats = {
-            'my_photos': Photo.query.filter_by(user_id=user.id).count(),
-            'my_bookings': Booking.query.filter_by(user_id=user.id).count(),
-            'total_views': db.session.query(db.func.sum(Photo.views)).filter(Photo.user_id == user.id).scalar() or 0,
-            'total_likes': db.session.query(db.func.sum(Photo.likes)).filter(Photo.user_id == user.id).scalar() or 0
+            'my_photos': len(user_photos),
+            'my_bookings': len([b for b in bookings if b.get('user_id') == user['id']]),
+            'total_views': sum(p.get('views', 0) for p in user_photos)
         }
-        recent_photos = Photo.query.filter_by(user_id=user.id).order_by(Photo.created_at.desc()).limit(5).all()
-        recent_bookings = Booking.query.filter_by(user_id=user.id).order_by(Booking.created_at.desc()).limit(5).all()
+        recent_photos = sorted(user_photos, key=lambda x: x['created_at'], reverse=True)[:5]
+        recent_bookings = sorted([b for b in bookings if b.get('user_id') == user['id']], 
+                                key=lambda x: x['created_at'], reverse=True)[:5]
     
     return render_template('admin/dashboard.html', user=user, stats=stats, 
-                         recent_photos=recent_photos, recent_bookings=recent_bookings)
+                          recent_photos=recent_photos, recent_bookings=recent_bookings)
 
 
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
-    user = User.query.get(session['user_id'])
+    """User profile management"""
+    user = next((u for u in users if u['id'] == session['user_id']), None)
     
     if request.method == 'POST':
-        user.name = request.form.get('name')
-        user.phone = request.form.get('phone')
-        
-        new_password = request.form.get('new_password')
-        if new_password:
-            if len(new_password) < 6:
-                flash('Password must be at least 6 characters.', 'danger')
-                return redirect(url_for('profile'))
-            user.set_password(new_password)
-        
-        db.session.commit()
-        session['user_name'] = user.name
-        flash('Profile updated successfully!', 'success')
+        user['name'] = request.form.get('name')
+        user['phone'] = request.form.get('phone')
+        if request.form.get('new_password'):
+            user['password_hash'] = generate_password_hash(request.form.get('new_password'))
+        session['user_name'] = user['name']
+        flash('Profile updated!', 'success')
         return redirect(url_for('profile'))
     
     return render_template('auth/profile.html', user=user)
 
 
-# ==================== PHOTO MANAGEMENT (CRUD) ====================
+# ==================== PHOTO MANAGEMENT ====================
 
 @app.route('/photo/upload', methods=['GET', 'POST'])
 @login_required
 def upload_photo():
+    """Upload new photo to gallery"""
     if request.method == 'POST':
-        title = request.form.get('title')
-        description = request.form.get('description')
-        category = request.form.get('category')
+        files = request.files.getlist('file') or [request.files.get('photo')]
         
-        if 'photo' not in request.files:
-            flash('No file selected.', 'danger')
-            return redirect(url_for('upload_photo'))
+        for file in files:
+            if file and file.filename and allowed_file(file.filename):
+                # Generate unique filename
+                filename = datetime.now().strftime('%Y%m%d_%H%M%S_') + secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                
+                # Add to photos database
+                photos.append({
+                    'id': next_id['photo'],
+                    'title': request.form.get('title', 'Untitled'),
+                    'description': request.form.get('description', ''),
+                    'filename': filename,
+                    'category': request.form.get('category', 'general'),
+                    'views': 0,
+                    'likes': 0,
+                    'user_id': session['user_id'],
+                    'created_at': datetime.utcnow()
+                })
+                next_id['photo'] += 1
         
-        file = request.files['photo']
-        
-        if file.filename == '':
-            flash('No file selected.', 'danger')
-            return redirect(url_for('upload_photo'))
-        
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            # Add timestamp to filename to make it unique
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_')
-            filename = timestamp + filename
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(filepath)
-            
-            photo = Photo(
-                title=title,
-                description=description,
-                filename=filename,
-                category=category,
-                user_id=session['user_id']
-            )
-            
-            db.session.add(photo)
-            db.session.commit()
-            
-            flash('Photo uploaded successfully!', 'success')
-            return redirect(url_for('dashboard'))
-        else:
-            flash('Invalid file type. Only PNG, JPG, JPEG, and GIF are allowed.', 'danger')
+        flash('Photo(s) uploaded successfully!', 'success')
+        return redirect(url_for('gallery'))
     
-    return render_template('upload_photo.html')
+    return render_template('photos/upload_photo.html')
 
 
 @app.route('/photo/edit/<int:photo_id>', methods=['GET', 'POST'])
 @login_required
 def edit_photo(photo_id):
-    photo = Photo.query.get_or_404(photo_id)
+    """Edit photo details"""
+    photo = next((p for p in photos if p['id'] == photo_id), None)
     
-    # Check if user owns the photo or is admin
-    if photo.user_id != session['user_id'] and session.get('user_role') != 'admin':
-        flash('You do not have permission to edit this photo.', 'danger')
+    # Check permissions
+    if not photo or (photo['user_id'] != session['user_id'] and session.get('user_role') != 'admin'):
+        flash('Permission denied.', 'danger')
         return redirect(url_for('dashboard'))
     
     if request.method == 'POST':
-        photo.title = request.form.get('title')
-        photo.description = request.form.get('description')
-        photo.category = request.form.get('category')
-        
-        db.session.commit()
-        flash('Photo updated successfully!', 'success')
+        photo['title'] = request.form.get('title')
+        photo['description'] = request.form.get('description')
+        photo['category'] = request.form.get('category')
+        flash('Photo updated!', 'success')
         return redirect(url_for('dashboard'))
     
-    return render_template('edit_photo.html', photo=photo)
+    return render_template('admin/edit_photo.html', photo=photo)
 
 
 @app.route('/photo/delete/<int:photo_id>', methods=['POST'])
 @login_required
 def delete_photo(photo_id):
-    photo = Photo.query.get_or_404(photo_id)
+    """Delete photo from gallery"""
+    global photos
+    photo = next((p for p in photos if p['id'] == photo_id), None)
     
-    # Check if user owns the photo or is admin
-    if photo.user_id != session['user_id'] and session.get('user_role') != 'admin':
-        flash('You do not have permission to delete this photo.', 'danger')
-        return redirect(url_for('dashboard'))
+    if photo and (photo['user_id'] == session['user_id'] or session.get('user_role') == 'admin'):
+        # Remove file from disk
+        try:
+            os.remove(os.path.join(app.config['UPLOAD_FOLDER'], photo['filename']))
+        except:
+            pass
+        # Remove from database
+        photos = [p for p in photos if p['id'] != photo_id]
+        flash('Photo deleted!', 'success')
     
-    # Delete file from filesystem
-    try:
-        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], photo.filename))
-    except:
-        pass
-    
-    db.session.delete(photo)
-    db.session.commit()
-    
-    flash('Photo deleted successfully!', 'success')
     return redirect(url_for('dashboard'))
-
 
 @app.route('/photo/like/<int:photo_id>', methods=['POST'])
 @login_required
 def like_photo(photo_id):
-    photo = Photo.query.get_or_404(photo_id)
-    photo.likes += 1
-    db.session.commit()
-    return jsonify({'success': True, 'likes': photo.likes})
+    """Like a photo (AJAX)"""
+    photo = next((p for p in photos if p['id'] == photo_id), None)
+    if photo:
+        photo['likes'] = photo.get('likes', 0) + 1
+        return jsonify({'success': True, 'likes': photo['likes']})
+    return jsonify({'success': False}), 404
 
+@app.route('/photo/<int:photo_id>/comment', methods=['POST'])
+@login_required
+def add_comment(photo_id):
+    """Add comment to photo"""
+    content = request.form.get('content')
+    if content:
+        comments.append({
+            'id': next_id['comment'],
+            'content': content,
+            'user_id': session['user_id'],
+            'photo_id': photo_id,
+            'created_at': datetime.utcnow()
+        })
+        next_id['comment'] += 1
+        flash('Comment added!', 'success')
+    return redirect(url_for('photo_detail', photo_id=photo_id))
 
 # ==================== BOOKING MANAGEMENT ====================
 
 @app.route('/booking/create', methods=['GET', 'POST'])
 def create_booking():
+    """Create new booking request"""
     if request.method == 'POST':
-        client_name = request.form.get('name')
-        client_email = request.form.get('email')
-        phone = request.form.get('phone')
-        service_type = request.form.get('service')
-        booking_date_str = request.form.get('date')
-        message = request.form.get('message')
-        
-        try:
-            booking_date = datetime.strptime(booking_date_str, '%Y-%m-%d')
-        except:
-            flash('Invalid date format.', 'danger')
-            return redirect(url_for('create_booking'))
-        
-        booking = Booking(
-            client_name=client_name,
-            client_email=client_email,
-            phone=phone,
-            service_type=service_type,
-            booking_date=booking_date,
-            message=message,
-            user_id=session.get('user_id')
-        )
-        
-        db.session.add(booking)
-        db.session.commit()
-        
-        flash('Booking request submitted successfully! We will contact you soon.', 'success')
+        bookings.append({
+            'id': next_id['booking'],
+            'client_name': request.form.get('name'),
+            'client_email': request.form.get('email'),
+            'phone': request.form.get('phone'),
+            'service_type': request.form.get('service'),
+            'booking_date': datetime.strptime(request.form.get('date'), '%Y-%m-%d'),
+            'message': request.form.get('message', ''),
+            'status': 'pending',
+            'user_id': session.get('user_id'),
+            'created_at': datetime.utcnow()
+        })
+        next_id['booking'] += 1
+        flash('Booking submitted successfully!', 'success')
         return redirect(url_for('index'))
     
     return render_template('create_booking.html')
 
-
 @app.route('/booking/manage')
 @admin_required
 def manage_bookings():
-    bookings = Booking.query.order_by(Booking.created_at.desc()).all()
-    return render_template('manage_bookings.html', bookings=bookings)
+    """Admin: View and manage all bookings"""
+    return render_template('admin/manage_bookings.html', 
+                          bookings=sorted(bookings, key=lambda x: x['created_at'], reverse=True))
 
 
 @app.route('/booking/update/<int:booking_id>', methods=['POST'])
 @admin_required
 def update_booking(booking_id):
-    booking = Booking.query.get_or_404(booking_id)
-    status = request.form.get('status')
-    
-    if status in ['pending', 'confirmed', 'cancelled', 'completed']:
-        booking.status = status
-        db.session.commit()
-        flash('Booking status updated!', 'success')
-    
+    """Admin: Update booking status"""
+    booking = next((b for b in bookings if b['id'] == booking_id), None)
+    if booking:
+        status = request.form.get('status')
+        if status in ['pending', 'confirmed', 'cancelled', 'completed']:
+            booking['status'] = status
+            flash('Booking updated!', 'success')
     return redirect(url_for('manage_bookings'))
-
 
 @app.route('/booking/delete/<int:booking_id>', methods=['POST'])
 @admin_required
 def delete_booking(booking_id):
-    booking = Booking.query.get_or_404(booking_id)
-    db.session.delete(booking)
-    db.session.commit()
+    """Admin: Delete booking"""
+    global bookings
+    bookings = [b for b in bookings if b['id'] != booking_id]
     flash('Booking deleted!', 'success')
     return redirect(url_for('manage_bookings'))
 
+# ==================== ADMIN ROUTES ====================
 
-# ==================== ADMIN PANEL ====================
+@app.route('/admin')
+@admin_required
+def admin():
+    """Admin panel - view contacts and manage system"""
+    return render_template('admin/dashboard.html', 
+                          contacts=contacts,
+                          messages=contacts,  # Alias for compatibility
+                          stats={'users': len(users), 'photos': len(photos), 
+                                'bookings': len(bookings), 'contacts': len(contacts)})
+
 
 @app.route('/admin/users')
 @admin_required
 def manage_users():
-    users = User.query.order_by(User.created_at.desc()).all()
-    return render_template('manage_users.html', users=users)
+    """Admin: Manage all users"""
+    return render_template('admin/manage_users.html', 
+                          users=sorted(users, key=lambda x: x['created_at'], reverse=True))
 
 
 @app.route('/admin/user/toggle-role/<int:user_id>', methods=['POST'])
 @admin_required
 def toggle_user_role(user_id):
-    user = User.query.get_or_404(user_id)
-    user.role = 'admin' if user.role == 'user' else 'user'
-    db.session.commit()
-    flash(f'User role updated to {user.role}!', 'success')
+    """Admin: Toggle user role between admin/user"""
+    user = next((u for u in users if u['id'] == user_id), None)
+    if user:
+        user['role'] = 'admin' if user['role'] == 'user' else 'user'
+        flash(f'Role updated to {user["role"]}!', 'success')
     return redirect(url_for('manage_users'))
-
 
 @app.route('/admin/user/delete/<int:user_id>', methods=['POST'])
 @admin_required
 def delete_user(user_id):
-    if user_id == session['user_id']:
-        flash('You cannot delete your own account!', 'danger')
-        return redirect(url_for('manage_users'))
-    
-    user = User.query.get_or_404(user_id)
-    db.session.delete(user)
-    db.session.commit()
-    flash('User deleted!', 'success')
+    """Admin: Delete user account"""
+    global users
+    if user_id != session['user_id']:
+        users = [u for u in users if u['id'] != user_id]
+        flash('User deleted!', 'success')
+    else:
+        flash('Cannot delete yourself!', 'danger')
     return redirect(url_for('manage_users'))
-
-
-# ==================== COMMENTS ====================
-
-@app.route('/photo/<int:photo_id>/comment', methods=['POST'])
-@login_required
-def add_comment(photo_id):
-    content = request.form.get('content')
-    
-    if not content:
-        flash('Comment cannot be empty.', 'danger')
-        return redirect(url_for('photo_detail', photo_id=photo_id))
-    
-    comment = Comment(
-        content=content,
-        user_id=session['user_id'],
-        photo_id=photo_id
-    )
-    
-    db.session.add(comment)
-    db.session.commit()
-    
-    flash('Comment added!', 'success')
-    return redirect(url_for('photo_detail', photo_id=photo_id))
-
 
 # ==================== ERROR HANDLERS ====================
 
 @app.errorhandler(404)
-def not_found(error):
+def not_found(e):
     return render_template('404.html'), 404
 
-
 @app.errorhandler(500)
-def internal_error(error):
-    db.session.rollback()
+def internal_error(e):
     return render_template('500.html'), 500
 
-
-# ==================== INITIALIZE DATABASE ====================
-
-def init_db():
-    with app.app_context():
-        db.create_all()
-        
-        # Create admin user if not exists
-        admin = User.query.filter_by(email='admin@photo.com').first()
-        if not admin:
-            admin = User(
-                name='Admin User',
-                email='admin@photo.com',
-                phone='+1234567890',
-                role='admin'
-            )
-            admin.set_password('admin123')
-            db.session.add(admin)
-            db.session.commit()
-            print('Admin user created: admin@photo.com / admin123')
-
+# ==================== RUN APPLICATION ====================
 
 if __name__ == '__main__':
-    init_db()
-    app.run(debug=True)
-    
+    init_data()  # Initialize default data
+    app.run(debug=True, host='0.0.0.0', port=5000)
