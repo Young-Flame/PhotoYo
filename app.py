@@ -38,6 +38,20 @@ comments = []   # Photo comments
 # Auto-increment ID counters
 next_id = {'user': 1, 'photo': 1, 'contact': 1, 'booking': 1, 'comment': 1}
 
+# ==================== INITIALIZE ADMIN USER ====================
+# Create admin user immediately on startup
+users.append({
+    'id': next_id['user'],
+    'name': 'Admin User',
+    'email': 'admin@photo.com',
+    'phone': '+1234567890',
+    'password_hash': generate_password_hash('admin123'),
+    'role': 'admin',
+    'created_at': datetime.utcnow()
+})
+next_id['user'] += 1
+print('✓ Admin created: admin@photo.com / admin123')
+
 # ==================== HELPER FUNCTIONS ====================
 
 def allowed_file(filename):
@@ -66,22 +80,6 @@ def admin_required(f):
             return redirect(url_for('index'))
         return f(*args, **kwargs)
     return decorated
-
-def init_data():
-    """Initialize default admin user and sample photos"""
-    # Create default admin account
-    if not any(u['email'] == 'admin@photo.com' for u in users):
-        users.append({
-            'id': next_id['user'],
-            'name': 'Admin User',
-            'email': 'admin@photo.com',
-            'phone': '+1234567890',
-            'password_hash': generate_password_hash('admin123'),
-            'role': 'admin',
-            'created_at': datetime.utcnow()
-        })
-        next_id['user'] += 1
-        print('✓ Admin created: admin@photo.com / admin123')
 
 # ==================== PUBLIC ROUTES ====================
 
@@ -301,7 +299,7 @@ def upload_photo():
                 next_id['photo'] += 1
         
         flash('Photo(s) uploaded successfully!', 'success')
-        return redirect(url_for('upload_photo'))
+        return redirect(url_for('gallery'))
 
     
     return render_template('photos/upload_photo.html')
@@ -483,5 +481,4 @@ def internal_error(e):
 # ==================== RUN APPLICATION ====================
 
 if __name__ == '__main__':
-    init_data()  # Initialize default data
     app.run(debug=True, host='0.0.0.0', port=5000)
