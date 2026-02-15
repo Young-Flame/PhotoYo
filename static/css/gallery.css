@@ -1,66 +1,101 @@
 .gallery-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    grid-gap: 15px;
-    margin: 10px;
+  column-count: 2;
+  column-gap: 10px;
+  padding: 10px 0;
+  width: 100%;
+  margin: 0;
 }
 
-.gallery-item {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
 
+.gallery-item {
+  break-inside: avoid;
+  margin-bottom: 10px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px;
 }
 
 .gallery-item img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: 50% 50%;
-    cursor: pointer;
-    transition: 0.5s ease-in-out;
+  width: 100%;
+  height: auto;
+  display: block;
+  cursor: pointer;
+  transition: transform 0.3s ease;
 }
 
 .gallery-item:hover img {
-    transform: scale(1.2);
+  transform: scale(1.2);
 }
 
 .full-size-photo {
-    position: fixed;
-    top: 0;
-    left: 0;
-    background-color: rgba(0,0,0,0.5);
-    height: 100%;
-    width: 100%;
-    z-index: 2;
-    display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  height: 100%;
+  width: 100%;
+  z-index: 2;
+  display: none;
 }
 
-.full-size-photo span{
-    position: absolute;
-    top: -10px;
-    right: 10px;
-    font-size: 60px;
-    color: white;
-    cursor: pointer;
-    z-index: 100;
+.full-size-photo span {
+  position: absolute;
+  top: -10px;
+  right: 10px;
+  font-size: 60px;
+  color: white;
+  cursor: pointer;
+  z-index: 100;
 }
 
 .full-size-photo img {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    max-height: 1080px;
-    height: 100%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-height: 1080px;
+  height: 100%;
+}
+
+@media (min-width: 640px) {
+  .gallery-grid {
+    column-count: 3;
+    column-gap: 12px;
+    padding: 12px 0;
+  }
+  .gallery-item {
+    margin-bottom: 12px;
+  }
+}
+
+@media (min-width: 900px) {
+  .gallery-grid {
+    column-count: 4;
+    column-gap: 15px;
+    padding: 15px 0;
+  }
+  .gallery-item {
+    margin-bottom: 15px;
+  }
+}
+
+
+@media (min-width: 1200px) {
+  .gallery-grid {
+    column-count: 5;
+  }
+}
+
+@media (min-width: 1600px) {
+  .gallery-grid {
+    column-count: 6;
+  }
 }
 
 @media (min-width: 690px) {
-    .full-size-photo img {
-        width: auto;
-    }
-
-    .gallery-grid {
-        grid-template-columns: repeat(4, 1fr);
-    }
+  .full-size-photo img {
+    width: auto;
+    max-width: 90vw;
+    max-height: 90vh;
+  }
 }

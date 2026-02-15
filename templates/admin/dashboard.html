@@ -28,10 +28,18 @@
                 <div class="row g-3">
                     {% for photo in recent_photos %}
                     <div class="col-md-4">
-                        <img src="{{ url_for('static', filename='uploads/' + photo.filename) }}" class="img-fluid rounded">
+                        <div class="position-relative">
+                            <img src="{{ url_for('static', filename='uploads/' + photo.filename) }}" class="img-fluid rounded">
+                            <form action="{{ url_for('delete_photo', photo_id=photo.id) }}" method="POST" class="position-absolute top-0 end-0 m-2">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this photo?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                     {% endfor %}
                 </div>
+
             </div>
         </div>
     </div>

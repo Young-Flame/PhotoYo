@@ -12,17 +12,17 @@ PhotoYo - Gallery
 {% block content %}
 
 <div class="gallery-grid">
-
     {% for image in images %}
     <div class="gallery-item">
-        <img src="static/images/gallery/{{ image }}" />
+        <img src="{{ url_for('static', filename='uploads/' + image) }}" />
     </div>
     {% endfor %}
 </div>
 
 <div class="full-size-photo">
     <span>&times;</span>
-    <img src="static/photos/gallery/20220429_0005.jpg" />
+    <img src="{{ url_for('static', filename='uploads/' + images[0]) if images else '' }}" />
 </div>
+
 
 {% endblock %}

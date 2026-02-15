@@ -301,7 +301,8 @@ def upload_photo():
                 next_id['photo'] += 1
         
         flash('Photo(s) uploaded successfully!', 'success')
-        return redirect(url_for('gallery'))
+        return redirect(url_for('upload_photo'))
+
     
     return render_template('photos/upload_photo.html')
 
